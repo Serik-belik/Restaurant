@@ -1,32 +1,35 @@
 // Workshop N25
 // RESTAURANT
-// Rev. New
+// Rev. A
 
 #include <iostream>
 #include <string.h>
 
 class Dish {
-public:
 	std::string name = "";
-	double price = 0.;
+	double _price = 0.;
 
+public:
 	// Default constructor
-	Dish(): name(), price() {}
+	Dish() {}
 
 	// Parameterized constructor
-	Dish(std::string dishName, double dishPrice) : name(dishName),
-	price(dishPrice) {
+	Dish(std::string dishName, double dishPrice) : name(dishName), _price(dishPrice) {
 		std::cout << "Dish " << dishName << " created at " << this << std::endl;
 	}
+
+	// Price getter
+	double price() { return _price; }
 };
 
 
 class Order {
-public:
-	Dish* arrayOfDishes = nullptr;
 	Dish* currentDish = nullptr;
 	unsigned int size = 0;
-	
+
+public:
+	Dish* arrayOfDishes = nullptr;
+
 	// Parameterized constructor
 	Order(const unsigned int sizeOfOrder): size(sizeOfOrder) {
 		arrayOfDishes = new Dish[sizeOfOrder];
@@ -34,9 +37,16 @@ public:
 		std::cout << "Order created at " << this << std::endl;
 	}
 
-	void addDish(Dish& dsh) {
+	// Destructor
+	~Order() {
+		delete[] arrayOfDishes;
+		arrayOfDishes = nullptr;
+		currentDish = nullptr;
+	}
+
+	void addDish(Dish& newDish) {
 		if (currentDish < &arrayOfDishes[size]) {
-			*currentDish = dsh;
+			*currentDish = newDish;
 			++currentDish;
 		}
 		else
@@ -48,7 +58,7 @@ public:
 
 		double totalPrice = 0.;
 		for (Dish* thisDish = arrayOfDishes; thisDish < &arrayOfDishes[size]; ++thisDish)
-			totalPrice += thisDish->price;
+			totalPrice += thisDish->price();
 
 		return totalPrice;
 	}
@@ -73,7 +83,7 @@ public:
 
 		if (orderPtr != nullptr) {
 			if (orderPtr->arrayOfDishes) {
-				//deletr[] orderPtr->arrayOfDishes;//не забуваємо видаляти блюда у столика
+				delete[] orderPtr->arrayOfDishes;
 			}
 			// якщо столик вже використовувався і було замовлення то видаляємо попереднє
 			delete orderPtr;
@@ -103,9 +113,8 @@ public:
 	};
 };
 
-
 int main() {
-	// Create several dishes
+	// Create a few dishes
 	Dish fish = Dish("fish", 15.50);
 	Dish salad = Dish("salad", 7.10);
 	Dish pizza = Dish("pizza", 12.90);
@@ -113,10 +122,11 @@ int main() {
 	Dish chicken = Dish("chicken", 9.99);
 	std::cout << std::endl;
 
-	// Create an order - test
+	// Create an order
 	unsigned int counter = 0;
 	std::cout << "How many dishes to order? ";
 	std::cin >> counter;
+
 	Order* ord1_ptr = nullptr;
 	ord1_ptr = new Order(counter);
 	Order& ord1 = *ord1_ptr;
@@ -124,13 +134,16 @@ int main() {
 	ord1.addDish(fish);
 	ord1.addDish(soup);
 	ord1.addDish(soup);
-	std::cout << ord1.getTotalPrice() << std::endl;
+	std::cout << "Total Order Price " << ord1.getTotalPrice() << std::endl;
 
 	// Create tables
 	Table* tables = new Table[3]{1, 2, 3};
 	tables[0].reserve(ord1_ptr);
 	double totalPrice = tables[0].close();
-	std::cout << "TotalPrice = " << totalPrice << std::endl;
+	std::cout << "Total Price on table[3] = " << totalPrice << std::endl;
+
+	delete[] tables;
+	tables = nullptr;
 
 	return 0;
 };
